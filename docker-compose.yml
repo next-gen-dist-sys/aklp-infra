@@ -51,22 +51,33 @@ services:
       - aklp-network
     restart: unless-stopped
 
-  # Task Service - Shell 명령어 실행 (향후 추가)
-  # aklp-task:
-  #   build:
-  #     context: ./aklp-task
-  #     dockerfile: Dockerfile
-  #   container_name: aklp-task
-  #   depends_on:
-  #     postgres:
-  #       condition: service_healthy
-  #   env_file:
-  #     - ./aklp-task/.env
-  #   ports:
-  #     - "8001:8000"
-  #   networks:
-  #     - aklp-network
-  #   restart: unless-stopped
+  # Task Service - 할 일 관리
+  aklp-task:
+    build:
+      context: ../aklp-task
+      dockerfile: Dockerfile
+    container_name: aklp-task
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - ../aklp-task/.env
+    environment:
+      # .env 파일의 DATABASE_URL을 override (컨테이너 내부에서는 'postgres' 호스트 사용)
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/aklp_task
+    ports:
+      - "8001:8001"
+    # 마이그레이션 실행 후 앱 시작
+    command: >
+      sh -c "alembic upgrade head &&
+             python -m uvicorn app.main:app --host 0.0.0.0 --port 8001 --reload"
+    volumes:
+      # 개발 시 코드 변경 실시간 반영
+      - ../aklp-task/app:/app/app
+      - ../aklp-task/alembic:/app/alembic
+    networks:
+      - aklp-network
+    restart: unless-stopped
 
   # Agent Service - AI 오케스트레이션 (향후 추가)
   # aklp-agent:

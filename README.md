@@ -28,12 +28,12 @@ git clone https://github.com/next-gen-dist-sys/aklp-agent.git
 
 클론 후 디렉토리 구조는 다음과 같아야 합니다:
 
-```
+```text
 aklp/
 ├── aklp-infra/          # 이 레포지토리 (Docker Compose, K8s 매니페스트)
 ├── aklp-postgres/       # PostgreSQL 서비스
 ├── aklp-note/           # Note 서비스 (파일 저장 및 관리)
-├── aklp-task/           # Task 서비스 (Shell 명령어 실행)
+├── aklp-task/           # Task 서비스 (할 일 관리)
 └── aklp-agent/          # Agent 서비스 (AI 오케스트레이션)
 ```
 
@@ -53,20 +53,24 @@ docker compose up -d
 ## 🔧 서비스 구성
 
 ### PostgreSQL (aklp-postgres)
+
 - **포트**: 5432
 - **데이터베이스**: `aklp_note`, `aklp_task`, `aklp_agent`
 - **용도**: 모든 서비스의 공용 데이터베이스
 
 ### Note Service (aklp-note)
+
 - **포트**: 8000
 - **기능**: AI 대화 세션 로깅 및 노트 관리
 - **API**: `http://localhost:8000/docs`
 
 ### Task Service (aklp-task)
-- **포트**: 8001 (예정)
-- **기능**: Shell 명령어 실행
+
+- **포트**: 8001
+- **기능**: 학습 과정에서 필요한 할 일 관리
 
 ### Agent Service (aklp-agent)
+
 - **포트**: 8002 (예정)
 - **기능**: AI 오케스트레이션
 
