@@ -60,19 +60,21 @@ docker compose up -d
 
 ### Note Service (aklp-note)
 
-- **포트**: 8000
+- **포트**: 8002
 - **기능**: AI 대화 세션 로깅 및 노트 관리
-- **API**: `http://localhost:8000/docs`
+- **API**: `http://localhost:8002/docs`
 
 ### Task Service (aklp-task)
 
-- **포트**: 8001
+- **포트**: 8003
 - **기능**: 학습 과정에서 필요한 할 일 관리
+- **API**: `http://localhost:8003/docs`
 
 ### Agent Service (aklp-agent)
 
-- **포트**: 8002 (예정)
+- **포트**: 8001
 - **기능**: AI 오케스트레이션
+- **API**: `http://localhost:8001/docs`
 
 ## 📋 개발 가이드
 
