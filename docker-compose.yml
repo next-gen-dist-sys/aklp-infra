@@ -38,17 +38,23 @@ services:
       # .env 파일의 DATABASE_URL을 override (컨테이너 내부에서는 'postgres' 호스트 사용)
       DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/aklp_note
     ports:
-      - "8000:8000"
+      - "8002:8002"
     # 마이그레이션 실행 후 앱 시작
     command: >
       sh -c "alembic upgrade head &&
-             python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+             python -m uvicorn app.main:app --host 0.0.0.0 --port 8002 --reload"
     volumes:
       # 개발 시 코드 변경 실시간 반영
       - ../aklp-note/app:/app/app
       - ../aklp-note/alembic:/app/alembic
     networks:
       - aklp-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
     restart: unless-stopped
 
   # Task Service - 할 일 관리
@@ -66,20 +72,27 @@ services:
       # .env 파일의 DATABASE_URL을 override (컨테이너 내부에서는 'postgres' 호스트 사용)
       DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/aklp_task
     ports:
-      - "8001:8001"
+      - "8003:8003"
     # 마이그레이션 실행 후 앱 시작
     command: >
       sh -c "alembic upgrade head &&
-             python -m uvicorn app.main:app --host 0.0.0.0 --port 8001 --reload"
+             python -m uvicorn app.main:app --host 0.0.0.0 --port 8003 --reload"
     volumes:
       # 개발 시 코드 변경 실시간 반영
       - ../aklp-task/app:/app/app
       - ../aklp-task/alembic:/app/alembic
     networks:
       - aklp-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8003/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
     restart: unless-stopped
 
   # Agent Service - AI 오케스트레이션
+
   aklp-agent:
     build:
       context: ../aklp-agent
