@@ -79,22 +79,31 @@ services:
       - aklp-network
     restart: unless-stopped
 
-  # Agent Service - AI 오케스트레이션 (향후 추가)
-  # aklp-agent:
-  #   build:
-  #     context: ./aklp-agent
-  #     dockerfile: Dockerfile
-  #   container_name: aklp-agent
-  #   depends_on:
-  #     postgres:
-  #       condition: service_healthy
-  #   env_file:
-  #     - ./aklp-agent/.env
-  #   ports:
-  #     - "8002:8000"
-  #   networks:
-  #     - aklp-network
-  #   restart: unless-stopped
+  # Agent Service - AI 오케스트레이션
+  aklp-agent:
+    build:
+      context: ../aklp-agent
+      dockerfile: Dockerfile
+    container_name: aklp-agent
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - ../aklp-agent/.env
+    environment:
+      # 컨테이너 내부에서는 postgres 호스트 사용
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/aklp_agent
+    ports:
+      - "8002:8002"  # app.main에서 PORT=8002 사용 중
+    command: >
+      sh -c "alembic upgrade head &&
+             python -m uvicorn app.main:app --host 0.0.0.0 --port 8002 --reload"
+    volumes:
+      - ../aklp-agent/app:/app/app
+      - ../aklp-agent/alembic:/app/alembic
+    networks:
+      - aklp-network
+    restart: unless-stopped
 
 volumes:
   postgres_data:
