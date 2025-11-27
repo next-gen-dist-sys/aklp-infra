@@ -114,6 +114,7 @@ services:
     volumes:
       - ../aklp-agent/app:/app/app
       - ../aklp-agent/alembic:/app/alembic
+      - ~/.aklp:/root/.aklp:ro  # Mount shared config (API key)
     networks:
       - aklp-network
     healthcheck:
