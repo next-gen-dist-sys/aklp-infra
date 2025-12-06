@@ -1,6 +1,6 @@
 services:
   # PostgreSQL - 공용 데이터베이스
-  # 각 서비스는 별도 데이터베이스를 사용 (aklp_note, aklp_task, aklp_agent)
+  # 각 서비스는 별도 데이터베이스를 사용
   postgres:
     build:
       context: ../aklp-postgres
@@ -91,8 +91,38 @@ services:
       start_period: 10s
     restart: unless-stopped
 
-  # Agent Service - AI 오케스트레이션
-
+  # File Service - 파일 관리
+  aklp-file:
+    build:
+      context: ../aklp-file
+      dockerfile: Dockerfile
+    container_name: aklp-file
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - ../aklp-file/.env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/aklp_file
+    ports:
+      - "8004:8004"
+    command: >
+      sh -c "alembic upgrade head &&
+             python -m uvicorn app.main:app --host 0.0.0.0 --port 8004 --reload"
+    volumes:
+      - ../aklp-file/app:/app/app
+      - ../aklp-file/alembic:/app/alembic
+    networks:
+      - aklp-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8004/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+  
+    # Agent Service - AI 오케스트레이션
   aklp-agent:
     build:
       context: ../aklp-agent
