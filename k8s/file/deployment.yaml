@@ -1,0 +1,80 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aklp-file
+  namespace: aklp
+  labels:
+    app: aklp-file
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: aklp-file
+  template:
+    metadata:
+      labels:
+        app: aklp-file
+    spec:
+      containers:
+        - name: aklp-file
+          image: ghcr.io/next-gen-dist-sys/aklp-file:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8004
+              name: http
+              protocol: TCP
+          env:
+            - name: APP_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: file-config
+                  key: APP_NAME
+            - name: DEBUG
+              valueFrom:
+                configMapKeyRef:
+                  name: file-config
+                  key: DEBUG
+            - name: LOG_LEVEL
+              valueFrom:
+                configMapKeyRef:
+                  name: file-config
+                  key: LOG_LEVEL
+            - name: LOG_FORMAT
+              valueFrom:
+                configMapKeyRef:
+                  name: file-config
+                  key: LOG_FORMAT
+            - name: DATABASE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: file-config
+                  key: DATABASE_URL
+            - name: MAX_FILE_SIZE
+              valueFrom:
+                configMapKeyRef:
+                  name: file-config
+                  key: MAX_FILE_SIZE
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+      restartPolicy: Always

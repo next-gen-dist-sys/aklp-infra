@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-config
+  namespace: aklp
+  labels:
+    app: postgres
+data:
+  POSTGRES_USER: postgres
+  POSTGRES_DB: postgres
+  # init script to create all databases
+  init-db.sh: |
+    #!/bin/bash
+    set -e
+
+    echo "Creating AKLP databases..."
+
+    DATABASES="aklp_agent aklp_task aklp_note aklp_file"
+
+    for db in $DATABASES; do
+      echo "Checking database: $db"
+      psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
+        SELECT 'CREATE DATABASE $db'
+        WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = '$db')\gexec
+        GRANT ALL PRIVILEGES ON DATABASE $db TO $POSTGRES_USER;
+    EOSQL
+      echo "Database $db is ready"
+    done
+
+    echo "All AKLP databases created successfully!"
+    psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" -c "\l"

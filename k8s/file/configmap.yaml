@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: file-config
+  namespace: aklp
+  labels:
+    app: aklp-file
+data:
+  APP_NAME: "aklp-file"
+  DEBUG: "false"
+  LOG_LEVEL: "INFO"
+  LOG_FORMAT: "json"
+  DATABASE_URL: "postgresql+asyncpg://postgres:postgres@postgres:5432/aklp_file"
+  MAX_FILE_SIZE: "10485760"

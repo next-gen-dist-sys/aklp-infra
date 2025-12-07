@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: agent-config
+  namespace: aklp
+  labels:
+    app: aklp-agent
+data:
+  APP_NAME: "aklp-agent"
+  DEBUG: "false"
+  LOG_LEVEL: "INFO"
+  LOG_FORMAT: "json"
+  DATABASE_URL: "postgresql+asyncpg://postgres:postgres@postgres:5432/aklp_agent"
