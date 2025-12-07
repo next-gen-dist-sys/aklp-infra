@@ -28,14 +28,17 @@ sed -i 's/127.0.0.1/MASTER_NODE_IP/g' ~/.kube/config
 
 ## 배포
 
-### 전체 배포 (Kustomize)
+### 1. 레포지토리 클론
 
 ```bash
-# aklp-infra 디렉토리에서
-kubectl apply -k k8s/
+git clone https://github.com/next-gen-dist-sys/aklp-infra.git
+cd aklp-infra
+```
 
-# 또는 전체 경로
-kubectl apply -k /path/to/aklp-infra/k8s/
+### 2. 전체 배포 (Kustomize)
+
+```bash
+kubectl apply -k k8s/
 ```
 
 ### 배포 확인
@@ -55,12 +58,12 @@ kubectl get pods -n aklp -w
 
 ### NodePort 정보
 
-| 서비스 | 내부 포트 | NodePort | 접근 URL |
-|--------|----------|----------|----------|
-| aklp-agent | 8001 | 30001 | http://NODE_IP:30001 |
-| aklp-note | 8002 | 30002 | http://NODE_IP:30002 |
-| aklp-task | 8003 | 30003 | http://NODE_IP:30003 |
-| aklp-file | 8004 | 30004 | http://NODE_IP:30004 |
+| 서비스     | 내부 포트 | NodePort | 접근 URL             |
+| ---------- | --------- | -------- | -------------------- |
+| aklp-agent | 8001      | 30001    | http://NODE_IP:30001 |
+| aklp-note  | 8002      | 30002    | http://NODE_IP:30002 |
+| aklp-task  | 8003      | 30003    | http://NODE_IP:30003 |
+| aklp-file  | 8004      | 30004    | http://NODE_IP:30004 |
 
 ### Health Check
 
@@ -81,7 +84,7 @@ curl http://NODE_IP:30004/health  # file
 
 ## 디렉토리 구조
 
-```
+```text
 k8s/
 ├── kustomization.yaml    # 전체 리소스 통합
 ├── namespace.yaml        # aklp 네임스페이스
@@ -191,16 +194,15 @@ kubectl get pods -n aklp -l app=postgres
 ### ImagePullBackOff
 
 ```bash
+# 에러 상세 확인
+kubectl describe pod POD_NAME -n aklp | tail -20
+
 # 이미지 존재 확인
 docker pull ghcr.io/next-gen-dist-sys/aklp-agent:latest
-
-# ghcr.io 인증 필요 시 Secret 생성
-kubectl create secret docker-registry ghcr-secret \
-  --docker-server=ghcr.io \
-  --docker-username=USERNAME \
-  --docker-password=GITHUB_TOKEN \
-  -n aklp
 ```
+
+이미지는 ghcr.io에 public으로 공개되어 있어 별도 인증 없이 pull 가능합니다.
+GitHub Actions가 아직 실행되지 않았다면 이미지가 없을 수 있습니다.
 
 ## GitHub Actions
 

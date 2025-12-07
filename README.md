@@ -252,6 +252,20 @@ curl http://localhost:8004/health  # file
 
 ---
 
+## Kubernetes 배포
+
+k3s 클러스터에 배포하려면 **[k8s/README.md](./k8s/README.md)** 를 참고하세요.
+
+```bash
+# 전체 배포
+kubectl apply -k k8s/
+
+# 상태 확인
+kubectl get all -n aklp
+```
+
+---
+
 ## 기술 스택
 
 | 항목          | 기술                    |
