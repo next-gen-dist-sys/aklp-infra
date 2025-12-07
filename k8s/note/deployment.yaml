@@ -19,6 +19,11 @@ spec:
         - name: aklp-note
           image: ghcr.io/next-gen-dist-sys/aklp-note:latest
           imagePullPolicy: Always
+          command: ["sh", "-c"]
+          args:
+            - |
+              alembic upgrade head &&
+              python -m uvicorn app.main:app --host 0.0.0.0 --port 8002
           ports:
             - containerPort: 8002
               name: http
