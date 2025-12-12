@@ -54,6 +54,11 @@ spec:
                 configMapKeyRef:
                   name: agent-config
                   key: DATABASE_URL
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: openai-secret
+                  key: api-key
           livenessProbe:
             httpGet:
               path: /health
