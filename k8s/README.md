@@ -16,7 +16,9 @@ kubectl get nodes
 # worker   Ready    <none>                 1d    v1.28.x+k3s1
 ```
 
-### 2. kubectl 설정 (로컬에서 접근 시)
+### 2. kubeconfig 설정 (클러스터 외부에서 접근 시)
+
+AKLP CLI 또는 kubectl을 클러스터 외부에서 사용하려면 kubeconfig가 필요합니다.
 
 ```bash
 # 마스터 노드에서 kubeconfig 복사

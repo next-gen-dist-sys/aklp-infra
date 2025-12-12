@@ -23,7 +23,7 @@ AI-powered Kubernetes Learning Platform의 인프라 설정 및 오케스트레�
          ▼                     ▼                     ▼
 ┌─────────────────┐   ┌─────────────────┐   ┌─────────────────┐
 │   aklp-note     │   │   aklp-task     │   │   aklp-file     │
-│   (포트 8002)    │   │   (포트 8001)    │   │   (포트 8004)    │
+│   (포트 8002)    │   │   (포트 8003)    │   │   (포트 8004)    │
 │                 │   │                 │   │                 │
 │ • 학습 노트      │   │ • 학습 과제      │   │ • YAML 파일     │
 │ • 세션 요약      │   │ • Batch 관리    │   │ • 로그 저장      │
@@ -95,16 +95,16 @@ docker compose up -d
 | 서비스        | 포트 | 데이터베이스 | 용도                            |
 | ------------- | ---- | ------------ | ------------------------------- |
 | aklp-postgres | 5432 | -            | 모든 서비스의 공용 데이터베이스 |
-| aklp-task     | 8001 | aklp_task    | 학습 과제 및 Batch 관리         |
+| aklp-agent    | 8001 | aklp_agent   | AI 오케스트레이션               |
 | aklp-note     | 8002 | aklp_note    | 학습 노트, 세션 요약            |
+| aklp-task     | 8003 | aklp_task    | 학습 과제 및 Batch 관리         |
 | aklp-file     | 8004 | aklp_file    | 파일 업로드/다운로드            |
-| aklp-agent    | 8003 | aklp_agent   | AI 오케스트레이션               |
 
 ### API 문서
 
-- Task Service: [Task 서비스 스웨거](http://localhost:8001/docs)
+- Agent Service: [Agent 서비스 스웨거](http://localhost:8001/docs)
 - Note Service: [Note 서비스 스웨거](http://localhost:8002/docs)
-- Agent Service: [Agent 서비스 스웨거](http://localhost:8003/docs)
+- Task Service: [Task 서비스 스웨거](http://localhost:8003/docs)
 - File Service: [File 서비스 스웨거](http://localhost:8004/docs)
 
 ---
@@ -245,8 +245,9 @@ docker compose up
 
 ```bash
 # 모든 서비스 상태 확인
-curl http://localhost:8001/health  # task
+curl http://localhost:8001/health  # agent
 curl http://localhost:8002/health  # note
+curl http://localhost:8003/health  # task
 curl http://localhost:8004/health  # file
 ```
 
