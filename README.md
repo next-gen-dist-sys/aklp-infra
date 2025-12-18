@@ -2,6 +2,122 @@
 
 AI-powered Kubernetes Learning Platform의 인프라 설정 및 오케스트레이션 레포지토리입니다.
 
+## Quick Start
+
+사용자를 위한 전체 설정 가이드입니다.
+
+### 사전 요구사항
+
+```bash
+# kubectl 설치 확인
+kubectl version --client
+
+# 설치되어 있지 않다면
+# macOS
+brew install kubectl
+
+# Linux
+curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+chmod +x kubectl && sudo mv kubectl /usr/local/bin/
+```
+
+### 1. k3s 클러스터 구성
+
+k3s 클러스터는 사용자가 직접 구성해야 합니다. 구성 후 노드 상태를 확인하세요:
+
+```bash
+# 마스터 노드에서 실행
+kubectl get nodes
+
+# 예상 출력
+# NAME     STATUS   ROLES                  AGE   VERSION
+# master   Ready    control-plane,master   1d    v1.28.x+k3s1
+```
+
+### 2. 백엔드 서비스 배포 (마스터 노드)
+
+```bash
+git clone https://github.com/next-gen-dist-sys/aklp-infra.git
+cd aklp-infra
+kubectl apply -k k8s/
+
+# 배포 상태 확인
+kubectl get pods -n aklp -w
+```
+
+aklp-agent를 제외한 모든 Pod가 `Running` 상태가 될 때까지 기다립니다.
+
+> **Note**: `aklp-agent`는 `CreateContainerConfigError` 상태로 표시됩니다.
+> 이는 OPENAI_API_KEY Secret이 아직 생성되지 않았기 때문이며, 정상적인 상태입니다.
+> CLI 초기 설정(5단계) 완료 시 Secret이 자동으로 생성되고 Agent가 재시작됩니다.
+
+### 3. 마스터 노드 IP 확인
+
+```bash
+ip addr show
+# 또는
+hostname -I
+```
+
+### 4. CLI 환경 설정 (로컬 PC)
+
+CLI를 사용할 환경(로컬 PC 등)에서 다음을 실행합니다:
+
+```bash
+# 마스터 노드에서 kubeconfig 복사
+scp user@MASTER_IP:/etc/rancher/k3s/k3s.yaml ~/.kube/config
+
+# server 주소를 마스터 노드 IP로 변경
+# Linux
+sed -i 's/127.0.0.1/MASTER_IP/g' ~/.kube/config
+# macOS
+sed -i '' 's/127.0.0.1/MASTER_IP/g' ~/.kube/config
+
+# KUBECONFIG 환경변수 설정 (.bashrc 또는 .zshrc에 추가)
+echo 'export KUBECONFIG=~/.kube/config' >> ~/.zshrc  # 또는 ~/.bashrc
+
+# 환경변수 즉시 적용
+source ~/.zshrc  # 또는 source ~/.bashrc
+
+# 연결 확인
+kubectl get nodes
+```
+
+**예시** (유저 이름이 konkuk, 마스터 IP가 192.168.118.128인 경우):
+
+```bash
+scp konkuk@192.168.118.128:/etc/rancher/k3s/k3s.yaml ~/.kube/config
+sed -i 's/127.0.0.1/192.168.118.128/g' ~/.kube/config  # Linux
+```
+
+### 5. CLI 설치 및 실행
+
+```bash
+# 설치 스크립트 실행 (Linux, macOS, Windows 지원)
+curl -sSL https://raw.githubusercontent.com/next-gen-dist-sys/aklp-cli/main/install.sh | sh
+
+# 설치 실패 시 직접 다운로드
+# https://github.com/next-gen-dist-sys/aklp-cli/releases
+
+# CLI 실행
+aklp
+```
+
+첫 실행 시 클러스터 주소와 OpenAI API Key를 입력하는 설정 마법사가 시작됩니다.
+클러스터 헬스체크와 kubernetes secret 등록에 성공해야 서비스를 이용할 수 있습니다.
+
+### 6. 사용 예시
+
+```bash
+❯ 모든 네임스페이스의 파드 보여줘
+❯ default 네임스페이스에 nginx 배포해줘
+❯ 서비스 목록 조회해줘
+```
+
+CLI 상세 사용법: [aklp-cli README](https://github.com/next-gen-dist-sys/aklp-cli)
+
+---
+
 ## 전체 아키텍처
 
 ```text
@@ -11,7 +127,7 @@ AI-powered Kubernetes Learning Platform의 인프라 설정 및 오케스트레�
                                  │
                                  ▼
 ┌──────────────────────────────────────────────────────────────────────────┐
-│                        AI Agent (aklp-agent)                              │
+│                     aklp-agent (NodePort: 30001)                         │
 │  ┌─────────────────────────────────────────────────────────────────────┐ │
 │  │ • 학습 가이드 제공                                                    │ │
 │  │ • YAML 파일 생성/검토                                                 │ │
@@ -23,10 +139,10 @@ AI-powered Kubernetes Learning Platform의 인프라 설정 및 오케스트레�
          ▼                     ▼                     ▼
 ┌─────────────────┐   ┌─────────────────┐   ┌─────────────────┐
 │   aklp-note     │   │   aklp-task     │   │   aklp-file     │
-│   (포트 8002)    │   │   (포트 8003)    │   │   (포트 8004)    │
+│(NodePort: 30002)│   │(NodePort: 30003)│   │(NodePort: 30004)│
 │                 │   │                 │   │                 │
-│ • 학습 노트      │   │ • 학습 과제      │   │ • YAML 파일     │
-│ • 세션 요약      │   │ • Batch 관리    │   │ • 로그 저장      │
+│ • 학습 노트      │   │ • 학습 과제      │   │ • YAML 파일      │
+│ • 세션 요약      │   │ • Batch 관리    │   │ • 업로드 & 다운로드│
 │ • 명령어 기록    │   │ • 진행 상태      │   │ • 문서 관리      │
 └────────┬────────┘   └────────┬────────┘   └────────┬────────┘
          │                     │                     │
@@ -44,7 +160,10 @@ AI-powered Kubernetes Learning Platform의 인프라 설정 및 오케스트레�
                     └─────────────────────┘
 ```
 
-## 빠른 시작
+## 개발 환경 (Docker Compose)
+
+> **Note**: Docker Compose는 간단한 서비스 개발/테스트 용도로만 사용합니다.
+> kubectl 명령어 실행 기능은 k3s 클러스터 환경에서만 동작합니다.
 
 ### 1. 모든 서비스 레포지토리 클론
 

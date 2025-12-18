@@ -1,60 +1,8 @@
-# AKLP Kubernetes 배포 가이드
+# AKLP Kubernetes 배포 상세 가이드
 
-k3s 클러스터에 AKLP 마이크로서비스를 배포하는 가이드입니다.
+k3s 클러스터에서 AKLP 서비스를 운영하기 위한 상세 가이드입니다.
 
-## 사전 준비
-
-### 1. k3s 클러스터 확인
-
-```bash
-# 노드 상태 확인
-kubectl get nodes
-
-# 예상 출력
-# NAME     STATUS   ROLES                  AGE   VERSION
-# master   Ready    control-plane,master   1d    v1.28.x+k3s1
-# worker   Ready    <none>                 1d    v1.28.x+k3s1
-```
-
-### 2. kubeconfig 설정 (클러스터 외부에서 접근 시)
-
-AKLP CLI 또는 kubectl을 클러스터 외부에서 사용하려면 kubeconfig가 필요합니다.
-
-```bash
-# 마스터 노드에서 kubeconfig 복사
-scp user@master:/etc/rancher/k3s/k3s.yaml ~/.kube/config
-
-# server 주소를 마스터 노드 IP로 변경
-sed -i 's/127.0.0.1/MASTER_NODE_IP/g' ~/.kube/config
-```
-
-## 배포
-
-### 1. 레포지토리 클론
-
-```bash
-git clone https://github.com/next-gen-dist-sys/aklp-infra.git
-cd aklp-infra
-```
-
-### 2. 전체 배포 (Kustomize)
-
-```bash
-kubectl apply -k k8s/
-```
-
-### 배포 확인
-
-```bash
-# 네임스페이스 확인
-kubectl get ns aklp
-
-# 모든 리소스 확인
-kubectl get all -n aklp
-
-# Pod 상태 확인
-kubectl get pods -n aklp -w
-```
+> **Quick Start**: 처음 설치하는 경우 [루트 README의 Quick Start](../README.md#quick-start)를 참고하세요.
 
 ## 서비스 접근
 
